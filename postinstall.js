@@ -35,10 +35,20 @@ if(process.platform === 'win32'){
             // exec('brew install sqlcipher')
             exec('brew install sqlcipher --with-fts')
           }
-          exec('export LDFLAGS="-L`brew --prefix`/opt/sqlcipher/lib"')
-          exec('export CPPFLAGS="-I`brew --prefix`/opt/sqlcipher/include"')
+
+          // build for electron
+          exec('export npm_config_target=`$(npm bin)/electron -v | cut -d v -f 2`')
+          exec('export npm_config_disturl=https://atom.io/download/electron')
+          exec('export npm_config_runtime=electron')
+          exec('export npm_config_build_from_source=true')
+          exec('export HOME=/tmp')
+
+          // compile with sqlcipher, link staticly
+          exec('export CPPFLAGS="-DSQLITE_HAS_CODEC -I`brew --prefix`/opt/sqlcipher/include -Wsign-compare -Wunused-function"')
+          exec('export LDFLAGS="-static `brew --prefix`/opt/sqlcipher/lib/libsqlcipher.a `brew --prefix openssl`/lib/libcrypto.a"')
+
           cd('node_modules/sqlite3')
-          exec('npm i --build-from-source --sqlite_libname=sqlcipher --sqlite=`brew --prefix`' + targetStr)
+          exec('npm i --build-from-source --sqlite_libname=sqlcipher --prefix`' + targetStr)
     } else {
           // linux
           exec('export LDFLAGS="-L/usr/local/lib"')
